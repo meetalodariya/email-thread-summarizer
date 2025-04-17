@@ -8,6 +8,7 @@ import (
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/meetalodariya/email-thread-summarizer/internal/app/handlers"
 	"github.com/meetalodariya/email-thread-summarizer/internal/auth"
@@ -28,15 +29,14 @@ func NewApp(db *gorm.DB) *App {
 
 func (a *App) InitHttpServer() {
 	e := a.svr
+
+	e.Use(middleware.CORS())
 	handler := handlers.NewHandler(a.DB)
 
 	api := e.Group("/api")
 
-	api.GET("/auth/register/google", handler.HandleRegister)
-	api.GET("/auth/register/google/callback", handler.HandleRegisterOAuthCallback)
-
-	api.GET("/auth/login/google", handler.HandleLogin)
-	api.GET("/auth/login/google/callback", handler.HandleLoginOAuthCallback)
+	api.GET("/auth/google", handler.HandleGoogleAuthenticationInit)
+	api.POST("/auth/google", handler.HandleGoogleAuthentication)
 
 	protectedG := api.Group("")
 	protectedG.Use(echojwt.WithConfig(auth.GetEchoJwtConfig()))

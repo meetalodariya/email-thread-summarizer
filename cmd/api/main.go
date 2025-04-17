@@ -15,6 +15,7 @@ import (
 	"github.com/meetalodariya/email-thread-summarizer/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -34,7 +35,9 @@ func init() {
 		dbConfig.Host, dbConfig.User, dbConfig.Password,
 		dbConfig.Database, dbConfig.Port)
 
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 
 	db.AutoMigrate(&model.User{})
 

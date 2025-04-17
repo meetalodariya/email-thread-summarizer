@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,112 +25,83 @@ type UserInfo struct {
 	Picture   string `json:"picture"`
 }
 
-type oauthLoginCallbackResponse struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
+type googleAuthenticationResponse struct {
+	Name  string `json:"name"`
+	Token string `json:"token"`
 }
 
-func (h *Handler) HandleRegisterOAuthCallback(eCtx echo.Context) error {
+type googleAuthenticationError struct {
+	Message string `json:"message"`
+}
+
+func (h *Handler) HandleGoogleAuthentication(eCtx echo.Context) error {
 	ctx := eCtx.Request().Context()
 
-	req := eCtx.Request()
-	q := req.URL.Query()
-
-	receivedState := q.Get("state")
-	if receivedState != "example" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid state")
+	code, err := extractAuthCode(eCtx)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
 	oauthConfig := config.GetRegisterConfig()
-
-	code := q.Get("code")
 	tok, err := oauthConfig.Conf.Exchange(ctx, code)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Token exchange failed")
+		return authError(http.StatusUnauthorized, eCtx)
 	}
 
-	user, err := fetchUserInfo(ctx, oauthConfig, tok)
+	userInfo, err := fetchUserInfo(ctx, oauthConfig, tok)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch user data")
+		return authError(http.StatusUnauthorized, eCtx)
 	}
 
-	userExists, err := userEmailExists(h.DB, user.Email)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Internal server error.")
+	user, err := fetchUser(h.DB, userInfo.Email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return authError(http.StatusInternalServerError, eCtx)
 	}
 
-	if userExists {
-		return echo.NewHTTPError(http.StatusConflict, "User already exists.")
+	if user != nil {
+		return respondWithToken(user.FirstName+" "+user.LastName, user.ID, eCtx)
 	}
 
-	if result := h.DB.Create(&model.User{
-		FirstName:            user.FirstName,
-		LastName:             user.LastName,
-		Picture:              user.Picture,
-		Email:                user.Email,
+	newUser := createUserFromInfo(userInfo, tok)
+	if err := h.DB.Create(&newUser).Error; err != nil {
+		return authError(http.StatusInternalServerError, eCtx)
+	}
+
+	return respondWithToken(newUser.FirstName+" "+newUser.LastName, newUser.ID, eCtx)
+}
+
+func extractAuthCode(eCtx echo.Context) (string, error) {
+	var body map[string]string
+	if err := json.NewDecoder(eCtx.Request().Body).Decode(&body); err != nil {
+		return "", err
+	}
+	return body["code"], nil
+}
+
+func createUserFromInfo(info *UserInfo, tok *oauth2.Token) model.User {
+	return model.User{
+		FirstName:            info.FirstName,
+		LastName:             info.LastName,
+		Picture:              info.Picture,
+		Email:                info.Email,
 		GmailRefreshToken:    tok.RefreshToken,
 		GmailAccessToken:     tok.AccessToken,
 		GmailTokenExpiry:     tok.Expiry,
 		IsGmailTokenValid:    true,
-		LastScannedTimestamp: time.Now().AddDate(0, -1, 0),
-	}); result.Error != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not save the user data")
+		LastScannedTimestamp: time.Now().AddDate(0, 0, -1),
 	}
-
-	return eCtx.JSON(http.StatusCreated, JsonResponse{Data: "User successfully authenticated."})
 }
 
-func (h *Handler) HandleLoginOAuthCallback(eCtx echo.Context) error {
-	ctx := eCtx.Request().Context()
-
-	req := eCtx.Request()
-	q := req.URL.Query()
-
-	receivedState := q.Get("state")
-	if receivedState != "example" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid state")
-	}
-
-	oauthConfig := config.GetLoginConfig()
-
-	code := q.Get("code")
-	tok, err := oauthConfig.Conf.Exchange(ctx, code)
+func respondWithToken(name string, userID uint, eCtx echo.Context) error {
+	token, err := auth.GenerateToken(userID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Token exchange failed")
+		return authError(http.StatusInternalServerError, eCtx)
 	}
-
-	user, err := fetchUserInfo(ctx, oauthConfig, tok)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch user data")
-	}
-	println(user.Email)
-
-	usr, err := fetchUser(h.DB, user.Email)
-	if err == gorm.ErrRecordNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, "User not found.")
-	} else if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Internal server error.")
-	}
-
-	token, err := auth.GenerateToken(usr.ID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Could not generate token")
-	}
-
-	return eCtx.JSON(http.StatusOK, oauthLoginCallbackResponse{Message: "User successfully authenticated.", Token: token})
+	return eCtx.JSON(http.StatusOK, googleAuthenticationResponse{Name: name, Token: token})
 }
 
-func userEmailExists(db *gorm.DB, email string) (bool, error) {
-	_, err := fetchUser(db, email)
-
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return true, nil
+func authError(status int, eCtx echo.Context) error {
+	return eCtx.JSON(status, googleAuthenticationError{Message: "Something went wrong!"})
 }
 
 func fetchUser(db *gorm.DB, email string) (*model.User, error) {
