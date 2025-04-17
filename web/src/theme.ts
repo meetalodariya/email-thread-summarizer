@@ -9,11 +9,4 @@ const config: ThemeConfig = {
 export const theme = {
   ...baseTheme,
   config,
-  styles: {
-    global: {
-      body: {
-        bg: "gray.50",
-      },
-    },
-  },
 };

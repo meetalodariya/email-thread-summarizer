@@ -7,16 +7,17 @@ import (
 )
 
 type ThreadSummary struct {
-	ID                       uint           `gorm:"primarykey"`
-	GmailThreadId            string         `gorm:"uniqueIndex;not null"`
-	ProcessedEmailIds        pq.StringArray `gorm:"type:text[]"`
-	Summary                  string
-	ThreadSubject            string
-	UserID                   uint `gorm:"index;not null"`
-	User                     User
-	MostRecentEmailTimestamp time.Time
+	ID                       uint           `gorm:"primarykey" json:"id"`
+	GmailThreadId            string         `gorm:"uniqueIndex;not null" json:"gmailThreadID"`
+	ProcessedEmailIds        pq.StringArray `gorm:"type:text[]" json:"-"`
+	Recipients               pq.StringArray `gorm:"type:text[]" json:"recipients"`
+	Summary                  string         `json:"summary"`
+	ThreadSubject            string         `json:"threadSubject"`
+	UserID                   uint           `gorm:"index;not null" json:"-"`
+	User                     User           `json:"-"`
+	MostRecentEmailTimestamp time.Time      `json:"mostRecentEmailTimestamp"`
 
-	CreatedAt time.Time `gorm:"index;not null"`
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	CreatedAt time.Time `gorm:"index;not null" json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	DeletedAt time.Time `json:"-"`
 }
