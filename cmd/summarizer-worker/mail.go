@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/mail"
@@ -14,6 +15,13 @@ import (
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
 )
+
+type EmailSummaryResponse struct {
+	UrgencyScore uint   `json:"urgency_score"`
+	Summary      string `json:"summary"`
+	ActionItems  string `json:"action_items"`
+	Category     string `json:"category"`
+}
 
 type Recipient struct {
 	Name  string `json:"name"`
@@ -148,14 +156,22 @@ func summarizeEmail(ctx context.Context, e *Email, usr *model.User) error {
 		}
 	}
 
+	summaryBytes, err := json.Marshal(ts.Summary)
+	if err != nil {
+		log.Printf("Error marshaling JSON: %v", err)
+
+		return err
+	}
+
+	var summary string
 	if ts.GmailThreadId != "" {
-		ts.Summary, err = openAISummarizer.SummarizeEmailIncremental(ctx, ts.Summary, e.Body, e.Subject, e.From.Name)
+		summary, err = openAISummarizer.SummarizeEmailIncremental(ctx, string(summaryBytes), e.Body, e.Subject, e.From.Name)
 		if err != nil {
 			log.Printf("Failed to summarize email incrementally: %v", err)
 			return err
 		}
 	} else {
-		ts.Summary, err = openAISummarizer.SummarizeEmail(ctx, e.Body, e.Subject, e.From.Name)
+		summary, err = openAISummarizer.SummarizeEmail(ctx, e.Body, e.Subject, e.From.Name)
 		if err != nil {
 			log.Printf("Failed to summarize email: %v", err)
 			return err
@@ -163,6 +179,18 @@ func summarizeEmail(ctx context.Context, e *Email, usr *model.User) error {
 		ts.GmailThreadId = e.ThreadID
 		ts.UserID = usr.ID
 	}
+
+	var emailSummaryResponse EmailSummaryResponse
+	err = json.Unmarshal([]byte(summary), &emailSummaryResponse)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return err
+	}
+
+	ts.Summary = emailSummaryResponse.Summary
+	ts.Category = emailSummaryResponse.Category
+	ts.ActionItems = emailSummaryResponse.ActionItems
+	ts.UrgencyScore = emailSummaryResponse.UrgencyScore
 
 	ts.ThreadSubject = e.Subject
 	ts.MostRecentEmailTimestamp = e.Date

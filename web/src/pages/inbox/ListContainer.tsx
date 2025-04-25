@@ -1,7 +1,8 @@
-import type { InboxResponse } from "@/types/api";
+import type { InboxResponse, Tab } from "@/types/api";
 import { formatDate } from "@/utils/date";
 import {
   Avatar,
+  Badge,
   Button,
   CloseButton,
   Dialog,
@@ -36,13 +37,51 @@ const markdownCss = css`
   }
 
   ul {
-    padding-left: 12px;
+    padding-left: 14px;
   }
 
   li {
     list-style-type: circle;
   }
 `;
+
+const getCategoryBadge = (category: Tab) => {
+  switch (category) {
+    case "personal":
+      return "blue";
+    case "work":
+      return "green";
+    case "promotional":
+      return "purple";
+    case "transactional":
+      return "orange";
+  }
+};
+
+const getUrgencyColor = (urgencyScore) => {
+  switch (urgencyScore) {
+    case 1:
+      return "#494CA2";
+    case 2:
+      return "#494CA2";
+    case 3:
+      return "#66b2b2";
+    case 4:
+      return "#006666";
+    case 5:
+      return "#FFA500";
+    case 6:
+      return "#FFD700";
+    case 7:
+      return "#FF8C00";
+    case 8:
+      return "#FF6347";
+    case 9:
+      return "#FF4500";
+    case 10:
+      return "#FF0000";
+  }
+};
 
 export const ListContainer: FC<Props> = ({
   fetchNextPage,
@@ -54,6 +93,9 @@ export const ListContainer: FC<Props> = ({
   const [dialogContent, setDialogContent] = useState({
     title: "",
     summary: "",
+    actionItems: "",
+    urgencyScore: 0,
+    category: "",
   });
   const observerRef = useRef<HTMLDivElement | null>(null);
   const [isObserverVisible, setIsObserverVisible] = useState(false);
@@ -94,6 +136,9 @@ export const ListContainer: FC<Props> = ({
                   setDialogContent({
                     title: threadSummary.threadSubject,
                     summary: threadSummary.summary,
+                    actionItems: threadSummary.actionItems,
+                    category: threadSummary.category,
+                    urgencyScore: threadSummary.urgencyScore,
                   });
                 }}
               >
@@ -104,7 +149,10 @@ export const ListContainer: FC<Props> = ({
                   align="center"
                   borderBottom="0.5px solid"
                   borderColor="gray.200"
-                  bg={true ? "gray.100" : "white"}
+                  style={{
+                    backgroundColor:
+                      getUrgencyColor(threadSummary.urgencyScore) + "30",
+                  }}
                   cursor="pointer"
                   _hover={{ shadow: "lg" }}
                   mb={"0.5"}
@@ -158,7 +206,33 @@ export const ListContainer: FC<Props> = ({
               </Dialog.Header>
               <Dialog.Body>
                 <div css={markdownCss}>
+                  <h2>
+                    Urgency Score:{" "}
+                    <span
+                      style={{
+                        color: getUrgencyColor(dialogContent.urgencyScore),
+                        textShadow: "black 2px 1px 20px",
+                      }}
+                    >
+                      {dialogContent.urgencyScore}
+                    </span>
+                  </h2>
+                  <h2>
+                    Category:{" "}
+                    <Badge
+                      style={{ textTransform: "capitalize" }}
+                      colorPalette={getCategoryBadge(
+                        dialogContent.category as Tab
+                      )}
+                    >
+                      {dialogContent.category}
+                    </Badge>
+                  </h2>
+
+                  <h2>Summary: </h2>
                   <Markdown>{dialogContent.summary}</Markdown>
+                  <h2>Action Items: </h2>
+                  <Markdown>{dialogContent.actionItems}</Markdown>
                 </div>
               </Dialog.Body>
               <Dialog.Footer>

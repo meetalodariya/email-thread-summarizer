@@ -17,8 +17,9 @@ export const Inbox: React.FC = () => {
   const [filters, setFilters] = useState<GetInboxParams>({
     ...initialFilters,
     q: searchParams.get("q") || "",
+    category: searchParams.get("category") || "",
   });
-  const [tab, setTab] = useState<Tab>("action");
+  const [tab, setTab] = useState<Tab>("");
 
   const {
     data,
@@ -27,6 +28,7 @@ export const Inbox: React.FC = () => {
     hasNextPage,
     isFetching,
     isFetchingNextPage,
+    isLoading,
     // status,
     // refetch,
   } = useGetInbox(filters);
@@ -38,6 +40,7 @@ export const Inbox: React.FC = () => {
           searchQuery={filters.q}
           onSearchChange={(q) => {
             setFilters({
+              ...filters,
               q,
               nextCursor: "",
             });
@@ -74,6 +77,25 @@ export const Inbox: React.FC = () => {
             tab={tab}
             setTab={(tab) => {
               setTab(tab);
+              setFilters({
+                category: tab,
+                q: "",
+                nextCursor: "",
+              });
+
+              setSearchParams(
+                (prevParams) => {
+                  if (!tab) {
+                    prevParams.delete("category");
+                  } else {
+                    prevParams.set("category", tab);
+                  }
+                  return prevParams;
+                },
+                {
+                  preventScrollReset: true,
+                }
+              );
             }}
           />
         </Box>

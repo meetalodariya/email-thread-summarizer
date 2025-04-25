@@ -1,0 +1,22 @@
+Subject: New Claude Features: Introducing Research and Google Workspace
+
+Hello,
+
+ 
+
+Today, we’re introducing two new capabilities that make Claude a more informed and capable collaborator — Research and a Google Workspace integration that connects your email, calendar and documents to Claude. 
+Screenshot of Claude analyzing a csv file
+
+Research: Now available on Max plan
+With Research, Claude can securely search across both your internal work context and the web to help you make decisions and take action faster than before. Claude conducts multiple intelligent searches that build on each other, exploring different angles of your question to deliver comprehensive answers with verified citations in minutes. Research is currently in beta and available on the Max plan in the United States, Japan and Brazil. 
+
+Google Workspace integration - Available on Pro and Max plans
+Claude now integrates with Gmail and Calendar, in addition to Google Docs – helping it gain deeper insight into your work context. By connecting Google Workspace, Claude can search emails, review documents, and see your calendar commitments – eliminating the need to manually upload files or repeatedly provide context about your work and schedule.
+
+ 
+
+If you are interested in using these new capabilities, upgrade to one of our paid plans today. 
+
+ 
+
+—The Anthropic Team

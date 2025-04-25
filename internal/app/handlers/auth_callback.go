@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -59,6 +60,10 @@ func (h *Handler) HandleGoogleAuthentication(eCtx echo.Context) error {
 	}
 
 	if user != nil {
+		err := saveNewTokensToDB(h.DB, user.ID, tok)
+		if err != nil {
+			return authError(http.StatusInternalServerError, eCtx)
+		}
 		return respondWithToken(user.FirstName+" "+user.LastName, user.ID, eCtx)
 	}
 
@@ -68,6 +73,24 @@ func (h *Handler) HandleGoogleAuthentication(eCtx echo.Context) error {
 	}
 
 	return respondWithToken(newUser.FirstName+" "+newUser.LastName, newUser.ID, eCtx)
+}
+
+func saveNewTokensToDB(db *gorm.DB, userId uint, tok *oauth2.Token) error {
+	var user model.User
+	user.ID = userId
+
+	if result := db.Model(&user).Updates(map[string]any{
+		"gmail_access_token":   tok.AccessToken,
+		"gmail_refresh_token":  tok.RefreshToken,
+		"gmail_token_expiry":   tok.Expiry,
+		"is_gmail_token_valid": true,
+	}); result.Error != nil {
+		err := fmt.Errorf("failed to save new token: %w", result.Error)
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func extractAuthCode(eCtx echo.Context) (string, error) {

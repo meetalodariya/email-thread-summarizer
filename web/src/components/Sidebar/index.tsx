@@ -1,10 +1,13 @@
 import { Box, Button, Flex } from "@chakra-ui/react";
 import { IconType } from "react-icons/lib";
-import { IoMdAlert } from "react-icons/io";
+
 import { LuListTodo } from "react-icons/lu";
+import { PiBagSimpleFill } from "react-icons/pi";
+import { IoChatbubbles } from "react-icons/io5";
+import { GrTransaction } from "react-icons/gr";
+import { MdLocalOffer } from "react-icons/md";
 import { FC } from "react";
 import { Tab } from "@/types/api";
-import { GiThunderSkull } from "react-icons/gi";
 
 interface LinkItemProps {
   name: string;
@@ -13,9 +16,11 @@ interface LinkItemProps {
 }
 
 const LinkItems: Array<LinkItemProps> = [
-  { name: "Action Required", icon: LuListTodo, code: "action" },
-  { name: "Important", icon: IoMdAlert, code: "important" },
-  { name: "Malicious / Junk", icon: GiThunderSkull, code: "junk" },
+  { name: "All", icon: LuListTodo, code: "" },
+  { name: "Work", icon: PiBagSimpleFill, code: "work" },
+  { name: "Personal", icon: IoChatbubbles, code: "personal" },
+  { name: "Transactional", icon: GrTransaction, code: "transactional" },
+  { name: "Promotional", icon: MdLocalOffer, code: "promotional" },
 ];
 
 interface SidebarContentProps {
@@ -37,7 +42,7 @@ export const SidebarContent: FC<SidebarContentProps> = ({ tab, setTab }) => {
               setTab(code);
             }}
           >
-            <Flex align={"center"} gap={"1"} mb={"2"} ml={"2"}>
+            <Flex align={"center"} gap={"2"} mb={"2"} ml={"2"}>
               <Icon /> {name}
             </Flex>
           </Button>

@@ -17,12 +17,12 @@ CREATE TABLE public.thread_summaries (
 ALTER TABLE public.thread_summaries ADD CONSTRAINT thread_summaries_pkey PRIMARY KEY (id);
 
 ALTER TABLE thread_summaries ADD COLUMN search_vector tsvector;
-UPDATE thread_summaries SET search_vector = to_tsvector('english', thread_summaries.thread_subject || ' ' || thread_summaries.summary);
+UPDATE thread_summaries SET search_vector = to_tsvector('english', thread_summaries.thread_subject || ' ' || thread_summaries.summary || ' ' || thread_summaries.action_items);
 CREATE INDEX idx_summary_search ON thread_summaries USING GIN(search_vector);
 
 CREATE OR REPLACE FUNCTION search_vector_update() RETURNS trigger AS $$
 BEGIN
-  NEW.search_vector := to_tsvector('english', coalesce(NEW.summary, '') || ' ' || coalesce(NEW.thread_subject, ''));
+  NEW.search_vector := to_tsvector('english', coalesce(NEW.summary, '') || ' ' || coalesce(NEW.thread_subject, '') || ' ' || coalesce(NEW.action_items, ''));
   RETURN NEW;
 END
 $$ LANGUAGE plpgsql;

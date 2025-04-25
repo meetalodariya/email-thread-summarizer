@@ -16,7 +16,7 @@ import (
 
 const INBOX_PAGE_SIZE = 10
 
-func (h *Handler) getInboxPage(userID string, cursor string, searchQuery string) ([]model.ThreadSummary, string, bool, error) {
+func (h *Handler) getInboxPage(userID string, cursor string, searchQuery string, category string) ([]model.ThreadSummary, string, bool, error) {
 	cursorInt, err := strconv.ParseInt(cursor, 10, 64)
 	if err != nil {
 		return nil, "", false, fmt.Errorf("failed to parse cursor: %w", err)
@@ -27,6 +27,10 @@ func (h *Handler) getInboxPage(userID string, cursor string, searchQuery string)
 		query = query.Where("most_recent_email_timestamp < ?", time.UnixMilli(cursorInt))
 	}
 
+	if category != "" {
+		query = query.Where("category = ?", category)
+	}
+
 	if searchQuery != "" {
 		query = query.Where(
 			"search_vector @@ plainto_tsquery('english', ?)", searchQuery,
@@ -34,7 +38,7 @@ func (h *Handler) getInboxPage(userID string, cursor string, searchQuery string)
 			[]string{"*", fmt.Sprintf("ts_rank(search_vector, plainto_tsquery('english', '%s')) AS rank", searchQuery)},
 		).Order("rank DESC")
 	} else {
-		query = query.Order("most_recent_email_timestamp DESC")
+		query = query.Order("urgency_score DESC")
 	}
 
 	var threads []model.ThreadSummary
@@ -68,8 +72,10 @@ func (h *Handler) HandleGetUserInbox(eCtx echo.Context) error {
 
 	searchQuery := eCtx.QueryParam("q")
 
+	category := eCtx.QueryParam("category")
+
 	// Get inbox page
-	threads, nextCursor, hasNextPage, err := h.getInboxPage(userID, cursor, searchQuery)
+	threads, nextCursor, hasNextPage, err := h.getInboxPage(userID, cursor, searchQuery, category)
 	if err != nil {
 		log.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch email summaries")

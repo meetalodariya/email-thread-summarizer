@@ -1,7 +1,7 @@
-import { AuthContext, useAuth } from "@/providers/auth";
+import { useAuth } from "@/providers/auth";
 import { UnauthorizedError } from "@/services/api";
 import { inboxService } from "@/services/inbox";
-import { ApiResponse, GetInboxParams, InboxResponse } from "@/types/api";
+import { GetInboxParams, InboxResponse } from "@/types/api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 
@@ -17,8 +17,9 @@ export const useGetInbox = (params: GetInboxParams) => {
     isFetching,
     isFetchingNextPage,
     isError,
+    isLoading
   } = useInfiniteQuery({
-    queryKey: ["inbox", params.q],
+    queryKey: ["inbox", params.q, params.category],
     queryFn: async ({ pageParam }): Promise<InboxResponse> => {
       const response = await inboxService.getInbox(
         {
@@ -49,6 +50,7 @@ export const useGetInbox = (params: GetInboxParams) => {
     hasNextPage,
     isFetching,
     isFetchingNextPage,
+    isLoading
     // status,
     // refetch,
   };

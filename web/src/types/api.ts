@@ -1,4 +1,4 @@
-export type Tab = "action" | "important" | "junk";
+export type Tab = "work" | "personal" | "promotional" | "transactional" | "";
 
 export interface RegisterRequest {
   code: string;
@@ -12,12 +12,15 @@ export interface RegisterResponse {
 export interface ThreadSummary {
   id: string;
   gmailThreadID: string;
-  summary: string;
   threadSubject: string;
   createdAt: string;
   updatedAt: string;
   mostRecentEmailTimestamp: string;
   recipients: string[];
+  summary: string;
+  actionItems: string;
+  urgencyScore: number;
+  category: string;
 }
 
 export type ApiResponse<T> = { data: T | null; status?: number };
@@ -32,6 +35,7 @@ export type InboxResponse = {
 export interface GetInboxParams {
   q: string;
   nextCursor: string;
+  category: string;
 }
 
 export interface ApiError {

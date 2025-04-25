@@ -1,4 +1,4 @@
-import { ApiResponse, GetInboxParams, InboxResponse } from "@/types/api";
+import { GetInboxParams, InboxResponse } from "@/types/api";
 import { api } from "./api";
 
 export const inboxService = {
@@ -10,6 +10,7 @@ export const inboxService = {
       params: {
         nextCursor: params.nextCursor || "",
         q: params.q || "",
+        category: params.category || "",
       },
       headers: {
         Authorization: `Bearer ${token}`,

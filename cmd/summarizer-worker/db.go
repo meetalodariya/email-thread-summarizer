@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/meetalodariya/email-thread-summarizer/model"
 	"golang.org/x/oauth2"
@@ -33,7 +34,7 @@ func markUserAsUnauthenticated(userId uint) error {
 	if result := dbClient.Model(&user).Updates(map[string]any{
 		"gmail_access_token":   "",
 		"gmail_refresh_token":  "",
-		"gmail_token_expiry":   "",
+		"gmail_token_expiry":   time.Time{},
 		"is_gmail_token_valid": false,
 	}); result.Error != nil {
 		err := fmt.Errorf("failed to save new token: %w", result.Error)

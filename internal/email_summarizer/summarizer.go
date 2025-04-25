@@ -8,7 +8,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-const OPENAI_MODEL = openai.GPT3Dot5Turbo
+const OPENAI_MODEL = openai.GPT4oLatest
 
 // EmailSummarizer defines the behavior for summarizing emails.
 type EmailSummarizer interface {
@@ -59,28 +59,26 @@ Summarize the following email in a concise and professional manner.
 Use Markdown in response
 
 Instructions:
-1. Respond in markdown syntax as per the 'Format' section provided below. 
+1. Respond ONLY in raw json format (without backticks/quotes) with text in markdown syntax as per the 'Format' section provided below. 
 
 2. Highlight important dates/times, locations or any important info in markdown syntax.
 
 3. Provide 'Urgency Score' for the email out of 10. (replace the score with 'score' placeholder in format.)
 
-4. Provide the detailed summary of the email under 'Summary of the thread' in bullet points. (replace the score with 'summary' placeholder in format.)
+4. Provide the detailed summary of the email under 'Summary of the thread' in bullet points (markdown string not json). (replace the score with 'summary' placeholder in format.)
 
-5. Provide section for the 'Action Items' for action items/next steps outlined in the email. (replace the score with 'actionItems' placeholder in format.)
+5. Provide section for the 'Action Items' for action items/next steps outlined in the email (markdown string not json). (replace the score with 'actionItems' placeholder in format.)
 
-6. Do not include long links. 
+6. Provide the category of the email (enum) from {'work', 'personal', 'transactional', 'promotional'} based on the email context. (replace the category with 'category' placeholder in format.)
 
-Format:
-## Urgency Score: {score}/10 
+7. Do not include long links. 
 
-## Summary of the thread: 
-{summary}
+Format in json with key as field and value is placeholder:
+urgency_score: {score}
+summary: {summary}
+action_items: {actionItems}
+category: {category}
 
-## Action Items: 
-{actionItems}
-
-Provide separate section for the 'action items'. Gmail Summarizer (gsummarizer@gmail.com) is the user of this API.
 Ignore the old conversations that start with '>'. 
 					`,
 				},
@@ -98,7 +96,6 @@ Ignore the old conversations that start with '>'.
 
 	if content == "" {
 		return "", fmt.Errorf("no response from OpenAI")
-
 	}
 
 	return content, nil
@@ -133,30 +130,28 @@ Given Current Thread Summary of email thread, summarize new email on the existin
 given below. Use Markdown in response.
 
 Instructions:
-1. Respond in markdown syntax as per the 'Format' section provided below. 
+1. Respond ONLY in raw json format (without backticks/quotes) with text in markdown syntax as per the 'Format' section provided below. 
 
 2. Highlight important dates/times, locations or any important info in markdown syntax.
 
 3. Provide 'Urgency Score' for the email out of 10. (replace the score with 'score' placeholder in format.)
 
-4. Provide the detailed updated summary of the email thread under 'Summary of the thread' in bullet points. (replace the score with 'summary' placeholder in format.)
+4. Provide the detailed updated summary of the email thread under 'Summary of the thread' in bullet points (markdown string not json). (replace the score with 'summary' placeholder in format.)
 
-5. Provide section for the 'Action Items' for updated action items/next steps outlined in the email in bullet points. (replace the score with 'actionItems' placeholder in format.)
+5. Provide section for the 'Action Items' for updated action items/next steps outlined in the email in bullet points (markdown string not json). (replace the score with 'actionItems' placeholder in format.)
 
-6. Do not include long links. 
+6. Provide the category of the email (enum) from {'work', 'personal', 'transactional', 'promotional'} based on the email context. (replace the category with 'category' placeholder in format.)
+
+7. Do not include long links. 
 
 -------
 
-Format:
-## Urgency Score: {score}/10 
+Format in json with key as field and value is placeholder:
+urgency_score: {score}
+summary: {summary}
+action_items: {actionItems}
+category: {category}
 
-## Summary of the thread: 
-{summary}
-
-## Action Items: 
-{actionItems}
-
-Gmail Summarizer (gsummarizer@gmail.com) is the user of this API.
 Ignore the old conversations in the new email that start with '>'.`,
 				},
 				{
@@ -172,7 +167,6 @@ Ignore the old conversations in the new email that start with '>'.`,
 
 	if chatCompletion.Choices[0].Message.Content == "" {
 		return "", fmt.Errorf("no response from OpenAI")
-
 	}
 
 	return chatCompletion.Choices[0].Message.Content, nil

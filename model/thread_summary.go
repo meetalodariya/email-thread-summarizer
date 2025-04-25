@@ -16,6 +16,9 @@ type ThreadSummary struct {
 	UserID                   uint           `gorm:"index;not null" json:"-"`
 	User                     User           `json:"-"`
 	MostRecentEmailTimestamp time.Time      `json:"mostRecentEmailTimestamp"`
+	UrgencyScore             uint           `json:"urgencyScore"`
+	Category                 string         `gorm:"index;not null" json:"category"`
+	ActionItems              string         `json:"actionItems"`
 
 	CreatedAt time.Time `gorm:"index;not null" json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

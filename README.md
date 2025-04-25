@@ -11,6 +11,8 @@ The application consists of:
 - PostgreSQL Database
 - AWS SQS Queue
 
+![alt text](Summarizer.drawio.png "Architecture")
+
 ## Setup
 
 1. Clone the repository
