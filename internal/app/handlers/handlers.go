@@ -7,13 +7,17 @@ type Handler struct {
 }
 
 type JsonResponse struct {
+	Data interface{} `json:"data"`
+}
+
+type PaginatedResponse struct {
 	Data       interface{} `json:"data"`
 	Pagination Pagination  `json:"pagination"`
 }
 
 type Pagination struct {
-	NextCursor string `json:"nextCursor"`
-	PrevCursor string `json:"prevCursor"`
+	NextCursor  string `json:"nextCursor"`
+	HasNextPage bool   `json:"hasNextPage"`
 }
 
 func NewHandler(db *gorm.DB) *Handler {

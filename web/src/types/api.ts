@@ -1,22 +1,44 @@
+export type Tab = "work" | "personal" | "promotional" | "transactional" | "";
+
 export interface RegisterRequest {
-  email: string;
-  password: string;
-  name: string;
+  code: string;
 }
 
 export interface RegisterResponse {
-  id: string;
-  email: string;
+  token: string;
   name: string;
-  created_at: string;
+}
+
+export interface ThreadSummary {
+  id: string;
+  gmailThreadID: string;
+  threadSubject: string;
+  createdAt: string;
+  updatedAt: string;
+  mostRecentEmailTimestamp: string;
+  recipients: string[];
+  summary: string;
+  actionItems: string;
+  urgencyScore: number;
+  category: string;
+}
+
+export type ApiResponse<T> = { data: T | null; status?: number };
+
+export type InboxResponse = {
+  data: Array<ThreadSummary>;
+  pagination: {
+    nextCursor: string;
+  };
+};
+
+export interface GetInboxParams {
+  q: string;
+  nextCursor: string;
+  category: string;
 }
 
 export interface ApiError {
   message: string;
   code: string;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  error: ApiError | null;
 }

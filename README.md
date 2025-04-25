@@ -11,12 +11,14 @@ The application consists of:
 - PostgreSQL Database
 - AWS SQS Queue
 
+![alt text](Summarizer.drawio.png "Architecture")
+
 ## Setup
 
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/email-thread-summarizer.git
+git clone https://github.com/meetalodariya/email-thread-summarizer.git
 cd email-thread-summarizer
 ```
 

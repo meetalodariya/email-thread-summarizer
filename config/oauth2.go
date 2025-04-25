@@ -21,13 +21,6 @@ func GetRegisterScopes() []string {
 	}
 }
 
-func GetLoginScopes() []string {
-	return []string{
-		"https://www.googleapis.com/auth/userinfo.profile",
-		"https://www.googleapis.com/auth/userinfo.email",
-	}
-}
-
 func GetRegisterConfig() *OAuth2Config {
 	return &OAuth2Config{
 		Conf: &oauth2.Config{
@@ -35,18 +28,6 @@ func GetRegisterConfig() *OAuth2Config {
 			ClientSecret: os.Getenv("CLIENT_SECRET"),
 			RedirectURL:  os.Getenv("CLIENT_REGISTER_CALLBACK_URL"),
 			Scopes:       GetRegisterScopes(),
-			Endpoint:     google.Endpoint,
-		},
-	}
-}
-
-func GetLoginConfig() *OAuth2Config {
-	return &OAuth2Config{
-		Conf: &oauth2.Config{
-			ClientID:     os.Getenv("CLIENT_ID"),
-			ClientSecret: os.Getenv("CLIENT_SECRET"),
-			RedirectURL:  os.Getenv("CLIENT_LOGIN_CALLBACK_URL"),
-			Scopes:       GetLoginScopes(),
 			Endpoint:     google.Endpoint,
 		},
 	}
