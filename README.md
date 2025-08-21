@@ -2,6 +2,8 @@
 
 Effortlessly streamline customer support email management with Summarizer, from inbox to structured summary.
 
+Research paper: [Google Scholar](https://hdl.handle.net/20.500.12741/rep:13347)
+
 ## Architecture
 
 The application consists of:
